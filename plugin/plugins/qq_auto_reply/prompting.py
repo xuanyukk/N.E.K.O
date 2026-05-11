@@ -37,11 +37,11 @@ class QQAutoReplyPromptingMixin:
 
         init_prompt_template = SESSION_INIT_PROMPT.get(
             short_language,
-            SESSION_INIT_PROMPT.get(user_language, SESSION_INIT_PROMPT["zh"]),
+            SESSION_INIT_PROMPT.get(user_language, SESSION_INIT_PROMPT["en"]),
         )
         context_ready_template = CONTEXT_SUMMARY_READY.get(
             short_language,
-            CONTEXT_SUMMARY_READY.get(user_language, CONTEXT_SUMMARY_READY["zh"]),
+            CONTEXT_SUMMARY_READY.get(user_language, CONTEXT_SUMMARY_READY["en"]),
         )
 
         system_prompt_parts = [
