@@ -86,6 +86,10 @@ function getEffectiveCompactChatState(
   return requestedState;
 }
 
+function isGuideChatButtonLockActive(): boolean {
+  return document.body?.classList.contains('yui-guide-chat-buttons-disabled') === true;
+}
+
 const COMPACT_SPEECH_REVEAL_MAX_CHARS_PER_SECOND = 8;
 const COMPACT_SPEECH_TURN_MERGE_WINDOW_MS = 12000;
 const COMPACT_SPEECH_FALLBACK_REVEAL_DELAY_MS = 700;
@@ -5464,6 +5468,7 @@ export default function App({
                         disabled={composerDisabled}
                         onClick={() => {
                           if (composerHidden) return;
+                          if (isGuideChatButtonLockActive()) return;
                           requestCompactChatState('input');
                         }}
                       >
