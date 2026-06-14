@@ -496,6 +496,100 @@ def test_basketball_duel_prompt_mentions_difficulty_control():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("mode", ("spectator", "shooter", "timed", "horse"))
+@pytest.mark.parametrize("lang", ("zh", "en", "ja", "ko", "ru", "es", "pt"))
+def test_basketball_non_duel_prompts_do_not_advertise_difficulty_control(lang, mode):
+    prompt = prompts_game.get_basketball_system_prompt(lang, mode=mode)
+
+    assert '"difficulty"' not in prompt
+    assert "max, lv2, lv3, lv4" not in prompt
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("lang", ("zh", "en", "ja", "ko", "ru", "es", "pt"))
+def test_basketball_horse_system_prompt_does_not_inherit_duel_rules(lang):
+    prompt = prompts_game.get_basketball_system_prompt(lang, mode="horse")
+
+    assert "event.mode=horse" in prompt
+    assert "event.mode=duel" not in prompt
+    assert "player_duel_shot" not in prompt
+    assert "neko_duel_shot" not in prompt
+    assert "neko_duel_turn" not in prompt
+    assert "duel.player_score" not in prompt
+    assert "duel.neko_score" not in prompt
+
+
+@pytest.mark.unit
+def test_basketball_horse_system_prompt_uses_horse_end_contract():
+    zh = prompts_game.get_basketball_system_prompt("zh", mode="horse")
+    en = prompts_game.get_basketball_system_prompt("en", mode="horse")
+
+    assert "本局共有三次失误机会" not in zh
+    assert "三次机会用完" not in zh
+    assert "attempts_remaining" not in zh
+    assert "HORSE 字母已经结算出胜负" in zh
+    assert "the run has three miss chances" not in en
+    assert "all three chances are gone" not in en
+    assert "attempts_remaining" not in en
+    assert "HORSE letters have decided the result" in en
+
+
+@pytest.mark.unit
+def test_basketball_horse_system_prompt_matches_chat_event_payload():
+    zh = prompts_game.get_basketball_system_prompt("zh", mode="horse")
+    en = prompts_game.get_basketball_system_prompt("en", mode="horse")
+
+    assert "只有复刻失败的一方吃到 HORSE 字母" in zh
+    assert "出题失败只是换对方出题" in zh
+    assert "只有复刻失败才描述谁吃到字母" in zh
+    assert "currentState.attempts_results 最后一条的 horse_phase" in zh
+    assert "不要用 event.horse.phase 判断" in zh
+    assert "结合 winner" not in zh
+    assert "winner 字段" in zh
+    assert "only a side that fails a copy attempt takes a HORSE letter" in en
+    assert "failed setup just passes setup to the other side" in en
+    assert "mention a letter only for failed copy attempts" in en
+    assert "last currentState.attempts_results entry's horse_phase" in en
+    assert "do not infer it from event.horse.phase" in en
+    assert "summarize with winner" not in en
+    assert "do not rely on a winner field" in en
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("lang", ("zh", "en", "ja", "ko", "ru", "es", "pt"))
+def test_basketball_quick_lines_mode_prompts_are_distinct_and_localized(lang):
+    spectator = prompts_game.get_basketball_quick_lines_prompt(lang, mode="spectator")
+
+    for mode in ("duel", "shooter", "timed", "horse"):
+        prompt = prompts_game.get_basketball_quick_lines_prompt(lang, mode=mode)
+        assert prompt != spectator
+        if lang != "en":
+            assert "Current mode is" not in prompt
+
+
+@pytest.mark.unit
+def test_basketball_english_quick_lines_do_not_mix_mode_suffixes():
+    timed = prompts_game.get_basketball_quick_lines_prompt("en", mode="timed")
+    horse = prompts_game.get_basketball_quick_lines_prompt("en", mode="horse")
+
+    assert "Current mode is timed" in timed
+    assert "Current mode is shooter" not in timed
+    assert "Current mode is HORSE" in horse
+    assert "Current mode is duel" not in horse
+
+
+@pytest.mark.unit
+def test_basketball_zh_horse_quick_lines_do_not_inherit_duel_prompt():
+    prompt = prompts_game.get_basketball_quick_lines_prompt("zh", mode="horse")
+
+    assert "当前模式是 HORSE" in prompt
+    assert "篮球对战回合" not in prompt
+    assert "轮流出手" not in prompt
+    assert "比分和对战节奏" not in prompt
+    assert "duel" not in prompt
+
+
+@pytest.mark.unit
 def test_basketball_prompt_localizations_do_not_fallback_to_english():
     english_spectator = prompts_game.get_basketball_system_prompt("en", mode="spectator")
     english_duel = prompts_game.get_basketball_system_prompt("en", mode="duel")
@@ -767,6 +861,23 @@ def test_basketball_chat_payload_contains_horse_state():
     assert "event.currentState = buildBasketballCurrentStatePayload();" in send_event
     assert "event.horse = buildHorseStatePayload();" in send_event
     assert "event.currentState.horse = event.horse;" in send_event
+
+
+@pytest.mark.unit
+def test_basketball_horse_player_event_keeps_shot_time_phase():
+    html = BASKETBALL_TEMPLATE.read_text(encoding="utf-8")
+    finish_horse = html[
+        html.index("function finishHorseShot("):
+        html.index("function finishDuelShot(", html.index("function finishHorseShot("))
+    ]
+
+    record_phase_index = finish_horse.index("horse_phase: game.horse.phase")
+    push_index = finish_horse.index("game.attemptsResults.push(resultEntry);")
+    player_set_index = finish_horse.index("if (game.horse.phase === 'player_set') {")
+    player_reply_index = finish_horse.index("} else if (game.horse.phase === 'player_reply') {")
+
+    assert record_phase_index < push_index < player_set_index < player_reply_index
+    assert "currentState.attempts_results" in prompts_game.get_basketball_system_prompt("en", mode="horse")
 
 
 @pytest.mark.unit
