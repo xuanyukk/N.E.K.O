@@ -6958,13 +6958,21 @@ async def game_project_context(game_type: str, request: Request):
             return {"ok": False, "reason": "context_method_unavailable", "lanlan_name": lanlan_name}
     except Exception as exc:
         logger.warning(
-            "🎮 新手破冰上下文写入失败: lanlan=%s game_type=%s err=%s",
+            "🎮 新用户破冰上下文追加失败: lanlan=%s role=%s session=%s err=%s",
             lanlan_name,
-            game_type,
+            role,
+            data.get("session_id") or "",
             exc,
             exc_info=True,
         )
-        return {"ok": False, "reason": "context_write_failed", "lanlan_name": lanlan_name}
+        return {
+            "ok": False,
+            "reason": "context_write_failed",
+            "error": str(exc),
+            "lanlan_name": lanlan_name,
+            "game_type": game_type,
+            "session_id": str(data.get("session_id") or ""),
+        }
 
     return {
         "ok": bool(ok),

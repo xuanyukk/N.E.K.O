@@ -60,7 +60,7 @@ test('guide helpers are exported from a standalone module and re-exported by com
     assert.match(helpersSource, /function deepFreeze\(value\)/);
     assert.match(helpersSource, /function registerGuide\(config, options\)/);
     assert.match(helpersSource, /function audioFilesForAllLocales\(fileName\)/);
-    assert.match(commonSource, /require\('\.\/tutorial-guide-helpers\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/guide-helpers\.js'\)/);
     assert.match(commonSource, /tutorialGuideHelpersApi\.deepFreeze\(value\)/);
     assert.match(commonSource, /tutorialGuideHelpersApi\.registerGuide\(config, options\)/);
     assert.match(commonSource, /tutorialGuideHelpersApi\.audioFilesForAllLocales\(fileName\)/);
@@ -76,7 +76,7 @@ test('scoped tutorial resources are exported from a standalone module and re-exp
     assert.equal(typeof common.createScopedTutorialResources, 'function');
     assert.match(scopedSource, /root\.TutorialScopedResources = api/);
     assert.match(scopedSource, /function createScopedTutorialResources\(options\)/);
-    assert.match(commonSource, /require\('\.\/tutorial-scoped-resources\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/scoped-resources\.js'\)/);
     assert.match(commonSource, /tutorialScopedResourcesApi\.createScopedTutorialResources\(options\)/);
     assert.doesNotMatch(commonSource, /const animationFrames = \[\];/);
 });
@@ -90,7 +90,7 @@ test('tutorial bridge command bus is exported from a standalone module and re-ex
     assert.match(bridgeSource, /root\.TutorialBridgeCommandBus = api/);
     assert.match(bridgeSource, /function createTutorialBridgeCommandBus\(options\)/);
     assert.match(bridgeSource, /DEFAULT_BRIDGE_QUEUE_KEY/);
-    assert.match(commonSource, /require\('\.\/tutorial-bridge-command-bus\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/bridge-command-bus\.js'\)/);
     assert.match(commonSource, /tutorialBridgeCommandBusApi\.createTutorialBridgeCommandBus\(options\)/);
     assert.doesNotMatch(commonSource, /DEFAULT_BRIDGE_QUEUE_KEY/);
     assert.doesNotMatch(commonSource, /function normalizeBridgeMessage\(message/);
@@ -143,7 +143,7 @@ test('target geometry registry is exported from a standalone module and re-expor
     assert.doesNotMatch(chatAvatarToolsRegistryBlock, /\.composer-icon-button\[data-avatar-tool-id\]/);
     assert.match(chatAvatarToolItemsRegistryBlock, /#composer-tool-popover-compact \.composer-icon-button\[data-avatar-tool-id\]/);
     assert.match(chatAvatarToolItemsRegistryBlock, /#composer-avatar-tool-quickbar \.composer-icon-button\[data-avatar-tool-id\]/);
-    assert.match(commonSource, /require\('\.\/tutorial-target-geometry-registry\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/target-geometry-registry\.js'\)/);
     assert.match(commonSource, /tutorialTargetGeometryRegistryApi\.createTutorialTargetGeometryRegistry\(options\)/);
     assert.doesNotMatch(commonSource, /DEFAULT_TARGET_GEOMETRY_ENTRIES/);
     assert.doesNotMatch(commonSource, /function cloneTargetGeometryEntry\(entry\)/);
@@ -161,7 +161,7 @@ test('chat window adapter is exported from a standalone module and re-exported b
     assert.match(adapterSource, /function createReactChatTutorialHostAdapter\(options\)/);
     assert.match(adapterSource, /function createChatWindowAdapter\(options\)/);
     assert.match(adapterSource, /rotateExternalizedChatCompactToolWheel/);
-    assert.match(commonSource, /require\('\.\/tutorial-chat-window-adapter\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/chat-window-adapter\.js'\)/);
     assert.match(commonSource, /tutorialChatWindowAdapterApi\.createReactChatTutorialHostAdapter\(options\)/);
     assert.match(commonSource, /tutorialChatWindowAdapterApi\.createChatWindowAdapter\(options\)/);
     assert.doesNotMatch(commonSource, /function callHost\(methodName, args\)/);
@@ -187,10 +187,10 @@ test('timeline command modules are exported from standalone modules and re-expor
     assert.match(normalizerSource, /root\.TutorialScriptNormalizer = api/);
     assert.match(engineSource, /root\.TutorialTimelineEngine = api/);
     assert.match(visualRuntimeSource, /root\.TutorialVisualRuntime = api/);
-    assert.match(commonSource, /require\('\.\/tutorial-command-registry\.js'\)/);
-    assert.match(commonSource, /require\('\.\/tutorial-script-normalizer\.js'\)/);
-    assert.match(commonSource, /require\('\.\/tutorial-timeline-engine\.js'\)/);
-    assert.match(commonSource, /require\('\.\/tutorial-visual-runtime\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/command-registry\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/script-normalizer\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/timeline-engine\.js'\)/);
+    assert.match(commonSource, /require\('\.\.\/core\/visual-runtime\.js'\)/);
 });
 
 test('ghost cursor can use exact timeline durations without display slowdown', async () => {
@@ -868,15 +868,14 @@ test('daily guide files consume common helpers instead of redeclaring shared hel
 
 test('Day3 guide ships every referenced audio file', () => {
     const audioRoot = path.join(repoRoot, 'static', 'assets/tutorial/guide-audio');
-    const expectedAudioFiles = [
-        '嘻嘻，可别以为这个聊.mp3',
-        '在这个小按钮里，有许.mp3',
-        '你可以随时来摸摸我的.mp3',
-        '快点开这个【Galg.mp3',
-        '你选的每一个对话，都.mp3',
-        '今天带你认识的这些功.mp3',
-        '不管是想摸摸我的头，.mp3'
-    ];
+    const day3GuideSource = fs.readFileSync(
+        path.join(repoRoot, 'static', 'tutorial/yui-guide/days/day3-interaction-guide.js'),
+        'utf8'
+    );
+    const expectedAudioFiles = Array.from(day3GuideSource.matchAll(/zhAudio\('([^']+\.mp3)'\)/g))
+        .map((match) => match[1]);
+
+    assert.ok(expectedAudioFiles.length > 0, 'Day3 guide should reference audio files');
 
     for (const locale of ['zh', 'ja', 'en', 'ko', 'ru']) {
         for (const audioFile of expectedAudioFiles) {
@@ -961,6 +960,29 @@ test('interaction takeover delegates external chat commands to the command bus b
     assert.doesNotMatch(clearFxBlock, /yui_guide_clear_chat_messages/);
     assert.doesNotMatch(commandsBlock, /getExternalChatChannel\(\)/);
     assert.doesNotMatch(commandsBlock, /channel\.postMessage/);
+});
+
+test('new user icebreaker clears and locks choice prompt while advancing branches', () => {
+    const source = fs.readFileSync(path.join(repoRoot, 'static', 'tutorial/icebreaker/new-user-icebreaker.js'), 'utf8');
+    const handleChoiceBlock = source.split('    function handleChoice(detail) {')[1].split(
+        '\n    function handleFreeText',
+        1
+    )[0];
+
+    assert.match(handleChoiceBlock, /if \(session\.choiceInFlight\) return;/);
+    assert.match(handleChoiceBlock, /session\.choiceInFlight = true;\s*clearChoicePrompt\(\);/);
+    assert.match(handleChoiceBlock, /appendChatMessage\('user'[\s\S]*\)\.then\(function \(\) \{[\s\S]*return deliverNode\(option\.next\);/);
+    assert.match(handleChoiceBlock, /\}\)\.then\(function \(\) \{\s*session\.choiceInFlight = false;/);
+    assert.match(handleChoiceBlock, /\.catch\(function \(error\) \{[\s\S]*session\.choiceInFlight = false;[\s\S]*setChoicePrompt\(node,\s*session\.localeData\);/);
+});
+
+test('new user icebreaker exports state used by greeting gating', () => {
+    const source = fs.readFileSync(path.join(repoRoot, 'static', 'tutorial/icebreaker/new-user-icebreaker.js'), 'utf8');
+
+    assert.match(source, /window\.NekoNewUserIcebreakerState\s*=\s*\{/);
+    assert.match(source, /readStore:\s*readStore/);
+    assert.match(source, /hasCompletedDay:\s*isDayCompleted/);
+    assert.match(source, /isPeriodActive:\s*isPeriodActive/);
 });
 
 test('director exposes phase one guard and timing helpers for complex sequences', () => {
@@ -1498,7 +1520,7 @@ test('templates and frontend harness load OperationRegistry before Director', ()
         'utf8'
     );
     const dependencyBlock = harnessSource.split('_YUI_DIRECTOR_DEPENDENCIES = (')[1].split(')', 1)[0];
-    assert.match(dependencyBlock, /"tutorial-resistance-controllers\.js",\s*"tutorial-operation-registry\.js",/);
+    assert.match(dependencyBlock, /"tutorial\/visual\/resistance-controllers\.js",\s*"tutorial\/core\/operation-registry\.js",/);
 });
 
 test('director routes final teardown through performFullCleanup helper', () => {

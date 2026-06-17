@@ -250,7 +250,6 @@
                 && typeof this.window.nekoTutorialOverlay.relayToChat === 'function'
                 ? this.window.nekoTutorialOverlay
                 : null;
-            let nativeRelaySequence = 0;
             if (broadcastChannel || nativeRelay) {
                 return {
                     postMessage(message) {
@@ -259,18 +258,21 @@
                         if (tutorialRunId && !outgoingMessage.tutorialRunId) {
                             outgoingMessage.tutorialRunId = tutorialRunId;
                         }
+                        let delivered = false;
                         if (broadcastChannel && typeof broadcastChannel.postMessage === 'function') {
                             try {
                                 broadcastChannel.postMessage(outgoingMessage);
+                                delivered = true;
                             } catch (_) {}
                         }
                         if (nativeRelay) {
                             try {
-                                nativeRelay.relayToChat(Object.assign({}, outgoingMessage, {
-                                    sequence: ++nativeRelaySequence,
-                                    payload: Object.assign({}, outgoingMessage)
-                                }));
+                                nativeRelay.relayToChat(outgoingMessage);
+                                delivered = true;
                             } catch (_) {}
+                        }
+                        if (!delivered) {
+                            throw new Error('external_chat_command_delivery_failed');
                         }
                     }
                 };

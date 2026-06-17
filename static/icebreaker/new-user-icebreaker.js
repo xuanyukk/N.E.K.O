@@ -7,7 +7,6 @@
     const HOST_WAIT_TIMEOUT_MS = 5000;
 
     let activeSession = null;
-    let choiceSyncInProgress = false;
 
     function now() {
         return Date.now();
@@ -54,6 +53,10 @@
         const days = store.days && typeof store.days === 'object' ? store.days : null;
         const entry = days && days[String(day)];
         return !!(entry && entry.completed === true);
+    }
+
+    function isPeriodActive() {
+        return !!activeSession;
     }
 
     function getHost() {
@@ -177,18 +180,21 @@
     }
 
     async function completeFromChoice(detail) {
-        if (!activeSession || choiceSyncInProgress) {
+        if (!activeSession) {
             return;
         }
         const session = activeSession;
+        if (session.choiceInFlight) {
+            return;
+        }
         const sessionId = String(detail && detail.sessionId || '');
         if (sessionId && sessionId !== session.id) {
             return;
         }
+        session.choiceInFlight = true;
         const option = detail && detail.option && typeof detail.option === 'object' ? detail.option : {};
         const choice = String((detail && detail.choice) || option.choice || '');
         const label = String((detail && detail.label) || option.label || '');
-        choiceSyncInProgress = true;
         try {
             const contextSynced = await postContext('user', label || choice, session.id);
 
@@ -204,7 +210,7 @@
                 activeSession = null;
             }
         } finally {
-            choiceSyncInProgress = false;
+            session.choiceInFlight = false;
         }
     }
 
@@ -221,6 +227,12 @@
         getActiveSession: function () {
             return activeSession;
         }
+    };
+
+    window.NekoNewUserIcebreakerState = {
+        readStore: readStore,
+        hasCompletedDay: isDayCompleted,
+        isPeriodActive: isPeriodActive
     };
 
     window.addEventListener('neko:tutorial-completed', handleTutorialEnded);

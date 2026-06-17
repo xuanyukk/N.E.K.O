@@ -24,6 +24,7 @@
     // instead of the active compact yarn ball. Strictly gated on the restorable
     // surface being full so the compact minimize path is untouched.
     var CHAT_MINIMIZED_BALL_LEGACY_FULL_ICON_SRC = '/static/icons/expand_icon_off_ball.png';
+    var tutorialChatRequestSeq = 0;
 
     var loadedPromise = null;
     var mounted = false;
@@ -101,7 +102,6 @@
         galgameOptions: [],
         galgameOptionsLoading: false,
         galgameTemporarilyDisabled: false,
-        homeTutorialInputLocked: false,
         homeTutorialInteractionLocked: false,
         _galgameRequestSeq: 0,
         // 通用 ChoicePrompt 框架（PR #1141 follow-up #2）。当前承载 mini_game_invite
@@ -2308,52 +2308,6 @@
         return role === 'user' ? getCurrentUserName() : getCurrentAssistantName();
     }
 
-    function readSubtitleEnabledSetting() {
-        var subtitleStore = window.nekoSubtitleShared;
-        if (subtitleStore && typeof subtitleStore.getSettings === 'function') {
-            try {
-                var subtitleSettings = subtitleStore.getSettings();
-                if (subtitleSettings && typeof subtitleSettings.subtitleEnabled !== 'undefined') {
-                    return !!subtitleSettings.subtitleEnabled;
-                }
-            } catch (_) {}
-        }
-        if (window.appState && typeof window.appState.subtitleEnabled !== 'undefined') {
-            return !!window.appState.subtitleEnabled;
-        }
-        try {
-            return localStorage.getItem('subtitleEnabled') === 'true';
-        } catch (_) {
-            return false;
-        }
-    }
-
-    function syncTranslateEnabledView(nextEnabled) {
-        var next = !!nextEnabled;
-        var currentProps = ensureViewProps();
-        if (currentProps.translateEnabled === next) return;
-        state.viewProps = Object.assign({}, currentProps, { translateEnabled: next });
-        renderWindow();
-    }
-
-    function bindSubtitleSettingsSync() {
-        var subtitleStore = window.nekoSubtitleShared;
-        var onSubtitleSettings = function (settings) {
-            if (!settings || typeof settings !== 'object') return;
-            if (typeof settings.subtitleEnabled === 'undefined') return;
-            syncTranslateEnabledView(!!settings.subtitleEnabled);
-        };
-
-        if (subtitleStore && typeof subtitleStore.subscribeSettings === 'function') {
-            subtitleStore.subscribeSettings(onSubtitleSettings);
-            return;
-        }
-
-        window.addEventListener('neko-subtitle-settings-change', function (event) {
-            onSubtitleSettings(event && event.detail ? event.detail.state : null);
-        });
-    }
-
     function createBaseViewProps() {
         var titleNode = $('chat-title');
         var textSendButton = $('textSendButton');
@@ -2398,7 +2352,9 @@
             exportConversationButtonAriaLabel: getI18nText('chat.exportConversation', '导出对话'),
             chatSurfaceMode: getCurrentChatSurfaceMode(),
             compactChatState: getCurrentCompactChatState(),
-            translateEnabled: readSubtitleEnabledSetting(),
+            translateEnabled: (window.appState && typeof window.appState.subtitleEnabled !== 'undefined')
+                ? !!window.appState.subtitleEnabled
+                : localStorage.getItem('subtitleEnabled') === 'true',
             translateButtonLabel: getI18nText('subtitle.enable', '字幕翻译'),
             translateButtonAriaLabel: getI18nText('subtitle.enableAriaLabel', '字幕翻译开关'),
             galgameToggleButtonLabel: getI18nText('chat.galgameToggle', 'GalGame 模式'),
@@ -2413,6 +2369,21 @@
             state.viewProps = createBaseViewProps();
         }
         return state.viewProps;
+    }
+
+    function createTutorialChatRequest(payload) {
+        tutorialChatRequestSeq += 1;
+        return Object.assign({
+            id: 'tutorial-chat-' + Date.now() + '-' + tutorialChatRequestSeq
+        }, payload || {});
+    }
+
+    function setTutorialChatRequest(propName, payload) {
+        state.viewProps = Object.assign({}, ensureViewProps(), {
+            [propName]: createTutorialChatRequest(payload)
+        });
+        renderWindow();
+        return true;
     }
 
     function cloneMessage(message) {
@@ -3475,16 +3446,34 @@
             var prompt = state.choicePrompt;
             if (!prompt || prompt.source !== 'new_user_icebreaker') return;
             var detail = {
-                sessionId: prompt.sessionId || '',
-                gameType: prompt.gameType || '',
+                sessionId: option.sessionId || prompt.sessionId || '',
+                gameType: prompt.gameType || 'new_user_icebreaker',
                 choice: option.choice,
                 label: option.label || '',
                 option: option
             };
             state.choicePrompt = null;
             renderWindow();
-            window.dispatchEvent(new CustomEvent('neko:icebreaker-choice-selected', { detail: detail }));
+            window.dispatchEvent(new CustomEvent('neko:icebreaker-choice-selected', {
+                detail: detail
+            }));
             dispatchHostEvent('icebreaker-choice-selected', detail);
+            try {
+                var channel = window.appInterpage && window.appInterpage.nekoBroadcastChannel;
+                if (channel && typeof channel.postMessage === 'function') {
+                    channel.postMessage({
+                        action: 'icebreaker_choice_selected',
+                        sessionId: detail.sessionId,
+                        gameType: detail.gameType,
+                        choice: detail.choice,
+                        label: detail.label,
+                        option: option,
+                        timestamp: Date.now()
+                    });
+                }
+            } catch (error) {
+                console.warn('[NewUserIcebreaker] choice broadcast failed:', error);
+            }
             return;
         }
         if (isHomeTutorialInteractionLocked() || getEffectiveComposerHidden()) return;
@@ -3502,8 +3491,10 @@
     }
 
     function handleCompactChatStateChange(nextCompactChatState) {
-        if ((state.homeTutorialInputLocked || isHomeTutorialInteractionLocked())
-            && normalizeCompactChatState(nextCompactChatState) === 'input') {
+        if (
+            (state.homeTutorialInputLocked || isHomeTutorialInteractionLocked())
+            && normalizeCompactChatState(nextCompactChatState) === 'input'
+        ) {
             return;
         }
         setCompactChatState(nextCompactChatState);
@@ -3766,7 +3757,8 @@
         var cleanedOptions = rawOptions.map(function (o) {
             return {
                 choice: String((o && o.choice) || ''),
-                label: String((o && o.label) || '')
+                label: String((o && o.label) || ''),
+                sessionId: sessionId
             };
         }).filter(function (o) { return o.choice && o.label; });
         if (!cleanedOptions.length) {
@@ -3793,6 +3785,18 @@
         if (source === 'mini_game_invite') {
             setMiniGameInvitePrompt(payload);
         }
+    }
+
+    function setIcebreakerChoicePrompt(payload) {
+        setNewUserIcebreakerPrompt(payload);
+    }
+
+    function clearIcebreakerChoicePrompt(sessionId) {
+        if (!state.choicePrompt || state.choicePrompt.source !== 'new_user_icebreaker') return false;
+        if (sessionId && state.choicePrompt.sessionId !== String(sessionId)) return false;
+        state.choicePrompt = null;
+        renderWindow();
+        return true;
     }
 
     function dismissChoicePromptIfMatches(sessionId) {
@@ -3896,8 +3900,7 @@
         }
         state.viewProps = Object.assign({}, ensureViewProps(), nextProps, {
             chatSurfaceMode: getCurrentChatSurfaceMode(),
-            compactChatState: getCurrentCompactChatState(),
-            translateEnabled: readSubtitleEnabledSetting()
+            compactChatState: getCurrentCompactChatState()
         });
         renderWindow();
         // setViewProps can now land a real surface change (e.g. compact -> the
@@ -4051,105 +4054,75 @@
         if (state.homeTutorialInteractionLocked === next) {
             return;
         }
+        state.homeTutorialInteractionLocked = next;
         if (next && getCurrentCompactChatState() === 'input') {
             resetCompactChatState();
         }
-        state.homeTutorialInteractionLocked = next;
         state.viewProps = Object.assign({}, ensureViewProps(), {
-            compactChatState: getCurrentCompactChatState(),
-            composerDisabled: next
+            composerDisabled: next,
+            compactChatState: getCurrentCompactChatState()
         });
         renderWindow();
     }
 
-    function createHomeTutorialRequestId(prefix, reason) {
-        return [
-            prefix || 'home-tutorial',
-            Date.now(),
-            Math.random().toString(36).slice(2, 8),
-            String(reason || '').replace(/[^a-z0-9_-]+/gi, '-').slice(0, 32)
-        ].filter(Boolean).join('-');
-    }
-
     function setHomeTutorialInputLocked(locked, reason) {
         var next = locked === true;
-        if (state.homeTutorialInputLocked !== next) {
-            if (next && getCurrentCompactChatState() === 'input') {
-                resetCompactChatState();
-            }
-            state.homeTutorialInputLocked = next;
-            state.viewProps = Object.assign({}, ensureViewProps(), {
-                compactChatState: getCurrentCompactChatState(),
-                compactInputLocked: next
-            });
-            renderWindow();
+        if (state.homeTutorialInputLocked === next) {
+            return;
         }
+        if (next && getCurrentCompactChatState() === 'input') {
+            resetCompactChatState();
+        }
+        state.homeTutorialInputLocked = next;
+        state.viewProps = Object.assign({}, ensureViewProps(), {
+            compactChatState: getCurrentCompactChatState(),
+            compactInputLocked: next
+        });
+        renderWindow();
     }
 
     function setAvatarToolMenuOpen(open, reason) {
-        var nextOpen = open === true;
-        setViewProps({
-            compactChatState: nextOpen ? 'input' : getCurrentCompactChatState(),
-            avatarToolMenuOpenRequest: {
-                id: createHomeTutorialRequestId('avatar-tool-menu', reason),
-                open: nextOpen,
-                reason: reason || ''
-            }
+        return setTutorialChatRequest('avatarToolMenuOpenRequest', {
+            open: open === true,
+            reason: typeof reason === 'string' ? reason : ''
         });
     }
 
     function setCompactToolFanOpen(open, reason) {
-        var nextOpen = open === true;
-        setViewProps({
-            compactChatState: nextOpen ? 'input' : getCurrentCompactChatState(),
-            compactToolFanOpenRequest: {
-                id: createHomeTutorialRequestId('compact-tool-fan', reason),
-                open: nextOpen,
-                reason: reason || ''
-            }
+        return setTutorialChatRequest('compactToolFanOpenRequest', {
+            open: open === true,
+            reason: typeof reason === 'string' ? reason : ''
         });
     }
 
     function setCompactHistoryOpen(open, reason) {
-        var nextOpen = open === true;
-        setViewProps({
-            compactChatState: nextOpen ? 'default' : getCurrentCompactChatState(),
-            compactHistoryOpenRequest: {
-                id: createHomeTutorialRequestId('compact-history', reason),
-                open: nextOpen,
-                reason: reason || ''
-            }
+        return setTutorialChatRequest('compactHistoryOpenRequest', {
+            open: open === true,
+            reason: typeof reason === 'string' ? reason : ''
         });
     }
 
-    function rotateCompactToolWheel(direction, stepCount, reason) {
-        var normalizedDirection = Number(direction) < 0 ? -1 : 1;
-        var normalizedStepCount = Number.isFinite(Number(stepCount))
-            ? Math.max(1, Math.min(7, Math.floor(Number(stepCount))))
+    function rotateCompactToolWheel(direction, stepCount, options) {
+        var normalizedDirection = direction === -1 ? -1 : 1;
+        var normalizedStepCount = Number.isFinite(stepCount)
+            ? Math.max(1, Math.min(7, Math.floor(stepCount)))
             : 1;
-        setViewProps({
-            compactChatState: 'input',
-            compactToolWheelRotateRequest: {
-                id: createHomeTutorialRequestId('compact-tool-wheel-rotate', reason),
-                direction: normalizedDirection,
-                stepCount: normalizedStepCount,
-                reason: reason || '',
-                forceFast: true
-            }
+        var normalizedOptions = options || {};
+        return setTutorialChatRequest('compactToolWheelRotateRequest', {
+            direction: normalizedDirection,
+            stepCount: normalizedStepCount,
+            reason: typeof normalizedOptions.reason === 'string' ? normalizedOptions.reason : '',
+            forceFast: normalizedOptions.forceFast !== false
         });
     }
 
     function setCompactToolWheelIndex(index, reason) {
-        var normalizedIndex = Number.isFinite(Number(index))
-            ? Math.max(0, Math.min(6, Math.floor(Number(index))))
+        var normalizedIndex = Number.isFinite(index)
+            ? Math.max(0, Math.min(6, Math.floor(index)))
             : 0;
-        setViewProps({
-            compactChatState: 'input',
-            compactToolWheelIndexRequest: {
-                id: createHomeTutorialRequestId('compact-tool-wheel-index', reason),
-                index: normalizedIndex,
-                reason: reason || ''
-            }
+        return setTutorialChatRequest('compactToolWheelIndexRequest', {
+            index: normalizedIndex,
+            reason: typeof reason === 'string' ? reason : ''
         });
     }
 
@@ -4214,6 +4187,22 @@
         var beforeLength = state.messages.length;
         state.messages = state.messages.filter(function (message) {
             return String(message.id) !== String(messageId);
+        });
+        var changed = state.messages.length !== beforeLength;
+        if (changed) {
+            renderWindow();
+        }
+        return changed;
+    }
+
+    function isYuiGuideChatMessage(message) {
+        return !!(message && typeof message.id === 'string' && message.id.indexOf('yui-guide-') === 0);
+    }
+
+    function clearGuideMessages() {
+        var beforeLength = state.messages.length;
+        state.messages = state.messages.filter(function (message) {
+            return !isYuiGuideChatMessage(message);
         });
         var changed = state.messages.length !== beforeLength;
         if (changed) {
@@ -5182,7 +5171,10 @@
 
     function setCompactChatState(nextCompactChatState) {
         var normalized = normalizeCompactChatState(nextCompactChatState);
-        if ((state.homeTutorialInputLocked || isHomeTutorialInteractionLocked()) && normalized === 'input') {
+        if (
+            normalized === 'input'
+            && (state.homeTutorialInputLocked || isHomeTutorialInteractionLocked())
+        ) {
             return getCurrentCompactChatState();
         }
         if (state.compactChatState === normalized) {
@@ -6280,29 +6272,29 @@
         window.addEventListener('neko:tutorial-started', function (event) {
             var detail = event && event.detail ? event.detail : {};
             if (detail.page !== 'home') return;
-            setHomeTutorialInteractionLocked(true, 'tutorial-started');
             setGalgameModeTemporarilyDisabled(true);
+            setHomeTutorialInteractionLocked(true, 'tutorial-started');
         });
 
         window.addEventListener('neko:tutorial-completed', function (event) {
             var detail = event && event.detail ? event.detail : {};
             if (detail.page !== 'home') return;
-            setHomeTutorialInteractionLocked(false, 'tutorial-completed');
             setGalgameModeTemporarilyDisabled(false);
+            setHomeTutorialInteractionLocked(false, 'tutorial-completed');
         });
 
         window.addEventListener('neko:tutorial-skipped', function (event) {
             var detail = event && event.detail ? event.detail : {};
             if (detail.page !== 'home') return;
-            setHomeTutorialInteractionLocked(false, 'tutorial-skipped');
             setGalgameModeTemporarilyDisabled(false);
+            setHomeTutorialInteractionLocked(false, 'tutorial-skipped');
         });
 
         window.addEventListener('neko:tutorial-ended-without-completion', function (event) {
             var detail = event && event.detail ? event.detail : {};
             if (detail.page !== 'home') return;
-            setHomeTutorialInteractionLocked(false, 'tutorial-ended-without-completion');
             setGalgameModeTemporarilyDisabled(false);
+            setHomeTutorialInteractionLocked(false, 'tutorial-ended-without-completion');
         });
 
         // Refresh option list whenever an assistant turn finishes streaming.
@@ -6407,7 +6399,6 @@
         createResizeEdges();
         bindResizing();
         bindBridgeEvents();
-        bindSubtitleSettingsSync();
         ensureElectronChatMinimizedStateBridge();
 
         // 恢复手机端用户设置的高度
@@ -6638,8 +6629,8 @@
         setMessages: setMessages,
         setComposerAttachments: setComposerAttachments,
         setComposerHidden: setComposerHidden,
-        setHomeTutorialInputLocked: setHomeTutorialInputLocked,
         setHomeTutorialInteractionLocked: setHomeTutorialInteractionLocked,
+        setHomeTutorialInputLocked: setHomeTutorialInputLocked,
         setAvatarToolMenuOpen: setAvatarToolMenuOpen,
         setCompactToolFanOpen: setCompactToolFanOpen,
         setCompactHistoryOpen: setCompactHistoryOpen,
@@ -6649,6 +6640,7 @@
         appendMessage: appendMessage,
         updateMessage: updateMessage,
         removeMessage: removeMessage,
+        clearGuideMessages: clearGuideMessages,
         clearMessages: clearMessages,
         getState: getStateSnapshot,
         setOnMessageAction: function (handler) {
@@ -6688,8 +6680,10 @@
         refreshGalgameOptions: fetchGalgameOptionsForLatestTurn,
         // Mini-game invite ChoicePrompt：app-websocket.js 收到对应 WS message 时调
         setMiniGameInvitePrompt: setMiniGameInvitePrompt,
+        setIcebreakerChoicePrompt: setIcebreakerChoicePrompt,
         setChoicePrompt: setChoicePrompt,
         setNewUserIcebreakerPrompt: setNewUserIcebreakerPrompt,
+        clearIcebreakerChoicePrompt: clearIcebreakerChoicePrompt,
         // unified resolved handler：accept 兼 launch / decline / suppress 都通过
         // 这条入口分发——前端 dismiss prompt UI + accept 时 window.open。替代了
         // 旧 launchMiniGame（accept-only）路径，让 codex P2 的 cross-window

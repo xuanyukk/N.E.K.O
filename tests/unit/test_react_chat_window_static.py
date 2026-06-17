@@ -5,6 +5,8 @@ from pathlib import Path
 APP_REACT_CHAT_WINDOW_PATH = Path(__file__).resolve().parents[2] / "static" / "app-react-chat-window.js"
 APP_BUTTONS_PATH = Path(__file__).resolve().parents[2] / "static" / "app-buttons.js"
 APP_CHAT_EXPORT_PATH = Path(__file__).resolve().parents[2] / "static" / "app-chat-export.js"
+APP_INTERPAGE_PATH = Path(__file__).resolve().parents[2] / "static" / "app-interpage.js"
+ICEBREAKER_SCRIPT_PATH = Path(__file__).resolve().parents[2] / "static" / "tutorial" / "icebreaker" / "new-user-icebreaker.js"
 AVATAR_UI_POPUP_PATH = Path(__file__).resolve().parents[2] / "static" / "avatar-ui-popup.js"
 MUSIC_UI_PATH = Path(__file__).resolve().parents[2] / "static" / "music_ui.js"
 MUSIC_UI_CSS_PATH = Path(__file__).resolve().parents[2] / "static" / "css" / "music_ui.css"
@@ -96,32 +98,6 @@ def test_standalone_subtitle_page_initializes_theme_before_subtitle_scripts():
 
     assert '<script src="/static/theme-manager.js"></script>' in source
     assert source.index('/static/theme-manager.js') < source.index('/static/subtitle-shared.js')
-
-
-def test_react_chat_translate_button_follows_shared_subtitle_state():
-    source = APP_REACT_CHAT_WINDOW_PATH.read_text(encoding="utf-8")
-
-    assert "function readSubtitleEnabledSetting()" in source
-    assert "window.nekoSubtitleShared" in source
-    assert "subtitleStore.subscribeSettings(onSubtitleSettings)" in source
-    assert "neko-subtitle-settings-change" in source
-
-    base_props_block = source.split("function createBaseViewProps()", 1)[1].split(
-        "function ensureViewProps()",
-        1,
-    )[0]
-    set_view_props_block = source.split("function setViewProps(nextViewProps)", 1)[1].split(
-        "function invalidatePendingGalgameRequest()",
-        1,
-    )[0]
-    init_block = source.split("function init()", 1)[1].split(
-        "function applyInitialComposerHiddenState()",
-        1,
-    )[0]
-
-    assert "translateEnabled: readSubtitleEnabledSetting()" in base_props_block
-    assert "translateEnabled: readSubtitleEnabledSetting()" in set_view_props_block
-    assert "bindSubtitleSettingsSync();" in init_block
 
 
 def test_chat_surface_mode_preference_is_shared_with_electron():
@@ -488,6 +464,71 @@ def test_home_tutorial_events_lock_chat_buttons_and_collapse_compact_input():
     assert "setHomeTutorialInteractionLocked(false, 'tutorial-skipped');" in skipped_block
     assert "setHomeTutorialInteractionLocked(false, 'tutorial-ended-without-completion');" in ended_block
     assert "disabled={composerDisabled}" in history_handle_block
+
+
+def test_home_tutorial_host_wires_avatar_tool_requests():
+    script = APP_REACT_CHAT_WINDOW_PATH.read_text(encoding="utf-8")
+    interpage_source = APP_INTERPAGE_PATH.read_text(encoding="utf-8")
+
+    assert "setHomeTutorialInputLocked: setHomeTutorialInputLocked" in script
+    assert "setAvatarToolMenuOpen: setAvatarToolMenuOpen" in script
+    assert "setCompactToolFanOpen: setCompactToolFanOpen" in script
+    assert "rotateCompactToolWheel: rotateCompactToolWheel" in script
+    assert "setCompactToolWheelIndex: setCompactToolWheelIndex" in script
+    assert "avatarToolMenuOpenRequest" in script
+    assert "compactToolFanOpenRequest" in script
+    assert "compactToolWheelRotateRequest" in script
+    assert "compactToolWheelIndexRequest" in script
+
+    assert "case 'yui_guide_set_chat_input_locked':" in interpage_source
+    assert "case 'yui_guide_set_avatar_tool_menu_open':" in interpage_source
+    assert "case 'yui_guide_set_compact_tool_fan_open':" in interpage_source
+    assert "case 'yui_guide_rotate_compact_tool_wheel':" in interpage_source
+    assert "case 'yui_guide_set_compact_tool_wheel_index':" in interpage_source
+    assert "host.setHomeTutorialInputLocked(locked === true" in interpage_source
+    assert "host.setAvatarToolMenuOpen(open === true" in interpage_source
+    assert "host.rotateCompactToolWheel(payload && payload.direction" in interpage_source
+
+
+def test_new_user_icebreaker_choice_prompt_wires_chat_host_and_external_chat():
+    script = APP_REACT_CHAT_WINDOW_PATH.read_text(encoding="utf-8")
+    interpage_source = APP_INTERPAGE_PATH.read_text(encoding="utf-8")
+    icebreaker_source = ICEBREAKER_SCRIPT_PATH.read_text(encoding="utf-8")
+
+    assert "function setIcebreakerChoicePrompt(payload)" in script
+    assert "function clearIcebreakerChoicePrompt(sessionId)" in script
+    assert "source: 'new_user_icebreaker'" in script
+    assert "setIcebreakerChoicePrompt: setIcebreakerChoicePrompt" in script
+    assert "clearIcebreakerChoicePrompt: clearIcebreakerChoicePrompt" in script
+    assert "if (source === 'new_user_icebreaker')" in script
+    assert "action: 'icebreaker_choice_selected'" in script
+
+    assert "case 'icebreaker_append_chat_message':" in interpage_source
+    assert "case 'icebreaker_set_choice_prompt':" in interpage_source
+    assert "case 'icebreaker_clear_choice_prompt':" in interpage_source
+    assert "case 'icebreaker_choice_selected':" in interpage_source
+    assert "lanlan_name: resolveLanlanName()" in icebreaker_source
+    assert "if (!isYuiGuideCommandForCurrentLanlan(event.data)) break;" in interpage_source
+    assert "host.setIcebreakerChoicePrompt(prompt)" in interpage_source
+    assert "host.clearIcebreakerChoicePrompt(sessionId)" in interpage_source
+    assert "neko:icebreaker-choice-selected" in interpage_source
+
+
+def test_home_template_loads_delivered_daily_guide_scripts():
+    source = INDEX_TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    for guide_script in [
+        "tutorial/yui-guide/days/day1-home-guide.js",
+        "tutorial/yui-guide/days/day2-screen-voice-guide.js",
+        "tutorial/yui-guide/days/day3-interaction-guide.js",
+        "tutorial/yui-guide/days/day4-companion-guide.js",
+        "tutorial/yui-guide/days/day5-personalization-guide.js",
+        "tutorial/yui-guide/days/day6-agent-guide.js",
+        "tutorial/yui-guide/days/day7-graduation-guide.js",
+        "tutorial/icebreaker/new-user-icebreaker.js",
+    ]:
+        assert f'<script src="/static/{guide_script}' in source
+        assert (Path(__file__).resolve().parents[2] / "static" / guide_script).exists()
 
 
 def test_idle_cat1_compact_mirror_ignores_pet_window_local_events():
@@ -1076,16 +1117,19 @@ def test_new_user_icebreaker_choice_listener_posts_context():
     )[0]
 
     assert "const option = detail && detail.option" in choice_block
+    assert "if (session.choiceInFlight)" in choice_block
+    assert choice_block.index("if (sessionId && sessionId !== session.id)") < choice_block.index(
+        "session.choiceInFlight = true;"
+    )
+    assert "try {" in choice_block
+    assert "finally {" in choice_block
+    assert "session.choiceInFlight = false;" in choice_block
     assert "const choice = String((detail && detail.choice) || option.choice || '')" in choice_block
     assert "const label = String((detail && detail.label) || option.label || '')" in choice_block
-    assert "if (!activeSession || choiceSyncInProgress)" in choice_block
-    assert "choiceSyncInProgress = true;" in choice_block
     assert "const contextSynced = await postContext('user', label || choice, session.id);" in choice_block
     assert "completed: contextSynced" in choice_block
     assert "contextSyncPending: !contextSynced" in choice_block
     assert "activeSession = null;" in choice_block
-    assert "} finally {" in choice_block
-    assert "choiceSyncInProgress = false;" in choice_block
     assert "fetch('/api/game/new_user_icebreaker/context'" in script
     assert "return !!(body && body.ok === true);" in script
 

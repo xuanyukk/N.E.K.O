@@ -155,6 +155,37 @@ async def test_new_user_icebreaker_context_endpoint_awaits_async_append(monkeypa
 
 
 @pytest.mark.asyncio
+async def test_new_user_icebreaker_context_endpoint_requires_public_append_method(monkeypatch):
+    class FakeSession:
+        def __init__(self):
+            self._conversation_history = []
+
+    class FakeManager:
+        def __init__(self):
+            self.session = FakeSession()
+
+    mgr = FakeManager()
+    monkeypatch.setattr(game_router, "get_session_manager", lambda: {"Lan": mgr})
+
+    result = await game_router.game_project_context(
+        "new_user_icebreaker",
+        _FakeRequest({
+            "lanlan_name": "Lan",
+            "role": "user",
+            "text": "choice a",
+            "session_id": "icebreaker-day1-test",
+        }),
+    )
+
+    assert result == {
+        "ok": False,
+        "reason": "context_method_unavailable",
+        "lanlan_name": "Lan",
+    }
+    assert mgr.session._conversation_history == []
+
+
+@pytest.mark.asyncio
 async def test_new_user_icebreaker_context_endpoint_handles_sync_append_error(monkeypatch):
     class FakeManager:
         def append_icebreaker_context(self, role, text):
@@ -172,11 +203,12 @@ async def test_new_user_icebreaker_context_endpoint_handles_sync_append_error(mo
         }),
     )
 
-    assert result == {
-        "ok": False,
-        "reason": "context_write_failed",
-        "lanlan_name": "Lan",
-    }
+    assert result["ok"] is False
+    assert result["reason"] == "context_write_failed"
+    assert result["error"] == "session history unavailable"
+    assert result["lanlan_name"] == "Lan"
+    assert result["game_type"] == "new_user_icebreaker"
+    assert result["session_id"] == "icebreaker-day1-test"
 
 
 @pytest.mark.asyncio
@@ -197,11 +229,12 @@ async def test_new_user_icebreaker_context_endpoint_handles_async_append_error(m
         }),
     )
 
-    assert result == {
-        "ok": False,
-        "reason": "context_write_failed",
-        "lanlan_name": "Lan",
-    }
+    assert result["ok"] is False
+    assert result["reason"] == "context_write_failed"
+    assert result["error"] == "session history unavailable"
+    assert result["lanlan_name"] == "Lan"
+    assert result["game_type"] == "new_user_icebreaker"
+    assert result["session_id"] == "icebreaker-day1-test"
 
 
 @pytest.mark.unit

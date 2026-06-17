@@ -34,17 +34,6 @@
         return dateProvider.now();
     }
 
-    let nativeEnvelopeSequence = 0;
-
-    function buildNativeRelayEnvelope(message) {
-        const payload = Object.assign({}, message || {});
-        const envelope = Object.assign({}, payload, {
-            sequence: ++nativeEnvelopeSequence,
-            payload
-        });
-        return envelope;
-    }
-
     function normalizeBridgeMessage(message, win, runIdStorageKey, options) {
         if (!message || typeof message !== 'object' || !message.action) {
             return null;
@@ -142,7 +131,7 @@
             const nativeRelay = nativeRelayProvider();
             if (nativeRelay && typeof nativeRelay.relayToChat === 'function') {
                 try {
-                    nativeRelay.relayToChat(buildNativeRelayEnvelope(outgoingMessage));
+                    nativeRelay.relayToChat(outgoingMessage);
                     posted = true;
                 } catch (error) {
                     consoleApi.warn('[YuiGuide] PC 原生转发独立聊天窗消息失败:', error);
@@ -187,7 +176,7 @@
             const nativeRelay = nativeRelayProvider();
             if (nativeRelay && typeof nativeRelay.relayToPet === 'function') {
                 try {
-                    nativeRelay.relayToPet(buildNativeRelayEnvelope(outgoingMessage));
+                    nativeRelay.relayToPet(outgoingMessage);
                     posted = true;
                 } catch (error) {
                     consoleApi.warn('[YuiGuide] PC 原生转发 Pet 教程消息失败:', error);
@@ -218,15 +207,15 @@
                 };
             }
             const previousHandler = channel.onmessage;
-            const nextHandler = function handleOnMessage(event) {
+            const handleOnMessage = function handleOnMessage(event) {
                 if (typeof previousHandler === 'function') {
                     previousHandler.call(channel, event);
                 }
                 listener(event);
             };
-            channel.onmessage = nextHandler;
+            channel.onmessage = handleOnMessage;
             return function unsubscribeBridgeOnMessage() {
-                if (channel.onmessage === nextHandler) {
+                if (channel.onmessage === handleOnMessage) {
                     channel.onmessage = previousHandler || null;
                 }
             };
