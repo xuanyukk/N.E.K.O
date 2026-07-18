@@ -2660,11 +2660,11 @@
             "proactiveVisionChat": "Screen Share",
             "proactiveVisionChatTooltip": "Requires Proactive Chat enabled and Privacy Mode disabled",
             "proactiveNewsChat": "News Website",
-            "proactiveNewsChatTooltip": "Use trending topics for proactive chat",
+            "proactiveNewsChatTooltip": "Use trending topics and Xiaoheihe home content for proactive chat",
             "proactiveVideoChat": "Video Website",
             "proactiveVideoChatTooltip": "Use video content for proactive chat",
             "proactivePersonalChat": "Personal Updates",
-            "proactivePersonalChatTooltip": "Use personal updates from connected platforms for proactive chat",
+            "proactivePersonalChatTooltip": "Use personal updates from connected social platforms for proactive chat",
             "proactiveMusicChat": "Music Recommendation",
             "proactiveMusicChatTooltip": "Use recommended music for proactive chat",
             "proactiveMemeChat": "Meme Sharing",
@@ -3778,6 +3778,7 @@
         "title": "N.E.K.O Credential Control Center",
         "header": "Credential Acquisition Center",
         "bilibili": "Bilibili",
+        "xhh": "Xiaoheihe",
         "youtube": "YouTube",
         "douyin": "Douyin",
         "kuaishou": "Kuaishou",
@@ -3806,6 +3807,7 @@
         "thisPlatform": "this platform",
         "instructions": {
             "bilibili": "<b>Target:</b> Go to <b>bilibili.com</b> to fetch these cookies.",
+            "xhh": "<b>Recommended:</b> use QR login below, or sign in at <b>xiaoheihe.cn</b> and enter the cookies manually.",
             "youtube": "<b>1. Get the Cookie</b><br>In a browser signed in to YouTube:<br>1. Open <b>youtube.com</b><br>2. Press F12 → Network<br>3. Refresh the page and select a <code>youtubei/v1/browse</code> request<br>4. Copy the complete Cookie value from Request Headers",
             "douyin": "<b>Target:</b> Go to <b>douyin.com</b> to fetch these cookies.",
             "kuaishou": "<b>Target:</b> Go to <b>kuaishou.com</b> to fetch these cookies.",
@@ -3823,6 +3825,18 @@
             "step4": "Find <span class=\"highlight-text\">Cookies</span> on the left sidebar, click the domain, and copy the required values on the right."
         },
         "fields": {
+            "user_heybox_id": {
+                "label": "user_heybox_id",
+                "desc": "Xiaoheihe account ID (required)"
+            },
+            "user_pkey": {
+                "label": "user_pkey",
+                "desc": "Xiaoheihe login credential (required)"
+            },
+            "x_xhh_tokenid": {
+                "label": "x_xhh_tokenid",
+                "desc": "Temporary browser token (optional; generated at runtime)"
+            },
             "youtubeCookie": {
                 "label": "Complete Cookie",
                 "desc": "Paste the complete Cookie value from Request Headers (must include SAPISID)"
@@ -3937,6 +3951,7 @@
                 "waiting": "Waiting for scan"
             },
             "successAlert": "QR login successful! Cookies have been filled in automatically, please click Save Configuration",
+            "localSaveFailed": "QR login succeeded, but automatic local saving failed. Credentials have been filled in; please click Save Configuration to save them manually.",
             "extractFailed": "QR login succeeded but failed to extract fields automatically. Please check manually."
         }
     },

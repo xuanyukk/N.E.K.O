@@ -2660,11 +2660,11 @@
             "proactiveVisionChat": "画面共有",
             "proactiveVisionChatTooltip": "自発的会話を有効にし、プライバシーモードを無効にする必要があります",
             "proactiveNewsChat": "ニュースサイト",
-            "proactiveNewsChatTooltip": "トレンド話題を使用してチャット",
+            "proactiveNewsChatTooltip": "トレンド話題と小黒盒のホーム内容をもとに話しかける",
             "proactiveVideoChat": "動画サイト",
             "proactiveVideoChatTooltip": "動画コンテンツを使用してチャット",
             "proactivePersonalChat": "アクティビティ更新",
-            "proactivePersonalChatTooltip": "連携しているプラットフォームの更新情報をもとに話しかける",
+            "proactivePersonalChatTooltip": "連携済みソーシャルプラットフォームの更新情報をもとに話しかける",
             "proactiveMusicChat": "音楽提案",
             "proactiveMusicChatTooltip": "おすすめの音楽を提案しながら話しかける",
             "proactiveMemeChat": "ミーム共有",
@@ -3778,6 +3778,7 @@
         "title": "N.E.K.O クレデンシャル制御センター",
         "header": "クレデンシャル取得センター",
         "bilibili": "ビリビリ (Bilibili)",
+        "xhh": "小黒盒",
         "youtube": "YouTube",
         "douyin": "抖音 (Douyin)",
         "kuaishou": "快手 (Kuaishou)",
@@ -3806,6 +3807,7 @@
         "thisPlatform": "このプラットフォーム",
         "instructions": {
             "bilibili": "<b>対象：</b> <b>bilibili.com</b> にアクセスして Cookie を取得してください。",
+            "xhh": "<b>推奨：</b>下のQRコードログインを使うか、<b>xiaoheihe.cn</b> にログインしてCookieを手動入力してください。",
             "youtube": "<b>1. Cookie を取得</b><br>YouTube にログイン済みのブラウザで：<br>1. <b>youtube.com</b> を開く<br>2. F12 → Network を押す<br>3. ページを更新し、<code>youtubei/v1/browse</code> リクエストを選択する<br>4. Request Headers から完全な Cookie 値をコピーする",
             "douyin": "<b>対象：</b> <b>douyin.com</b> にアクセスして Cookie を取得してください。",
             "kuaishou": "<b>対象：</b> <b>kuaishou.com</b> にアクセスして Cookie を取得してください。",
@@ -3823,6 +3825,18 @@
             "step4": "左側の <span class=\"highlight-text\">Cookies</span> を展開し、ドメインをクリックして右側にある必要な値をコピーします。"
         },
         "fields": {
+            "user_heybox_id": {
+                "label": "user_heybox_id",
+                "desc": "小黒盒アカウントID（必須）"
+            },
+            "user_pkey": {
+                "label": "user_pkey",
+                "desc": "小黒盒ログイン認証情報（必須）"
+            },
+            "x_xhh_tokenid": {
+                "label": "x_xhh_tokenid",
+                "desc": "一時ブラウザトークン（任意、実行時に自動生成）"
+            },
             "youtubeCookie": {
                 "label": "完全な Cookie",
                 "desc": "Request Headers の Cookie 値全体を貼り付けてください（SAPISID 必須）"
@@ -3937,6 +3951,7 @@
                 "waiting": "スキャン待ち"
             },
             "successAlert": "QRログイン成功！Cookieが自動入力されました。「設定を保存」をクリックしてください",
+            "localSaveFailed": "QRログインは成功しましたが、ローカルへの自動保存に失敗しました。認証情報は入力済みです。手動で「設定を保存」をクリックしてください。",
             "extractFailed": "QRログインは成功しましたが、フィールドの自動抽出に失敗しました。手動で確認してください。"
         }
     },

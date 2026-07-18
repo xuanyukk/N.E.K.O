@@ -2660,11 +2660,11 @@
             "proactiveVisionChat": "화면 공유",
             "proactiveVisionChatTooltip": "사전 예방적 채팅을 활성화하고 프라이버시 모드를 비활성화해야 합니다",
             "proactiveNewsChat": "뉴스 웹사이트",
-            "proactiveNewsChatTooltip": "트렌딩 토픽을 사용하여 채팅",
+            "proactiveNewsChatTooltip": "인기 주제와 小黑盒 홈 콘텐츠로 대화",
             "proactiveVideoChat": "동영상 웹사이트",
             "proactiveVideoChatTooltip": "동영상 콘텐츠를 사용하여 채팅",
             "proactivePersonalChat": "개인 업데이트",
-            "proactivePersonalChatTooltip": "연결된 플랫폼의 개인 업데이트를 사용하여 채팅",
+            "proactivePersonalChatTooltip": "연결된 소셜 플랫폼의 개인 업데이트로 대화",
             "proactiveMusicChat": "음악 추천",
             "proactiveMusicChatTooltip": "추천 음악을 사용하여 채팅",
             "proactiveMemeChat": "밈 공유",
@@ -3778,6 +3778,7 @@
         "title": "N.E.K.O 자격 증명 제어 센터",
         "header": "자격 증명 획득 센터",
         "bilibili": "빌리빌리 (Bilibili)",
+        "xhh": "Xiaoheihe",
         "youtube": "YouTube",
         "douyin": "도인 (Douyin)",
         "kuaishou": "쾌수 (Kuaishou)",
@@ -3806,6 +3807,7 @@
         "thisPlatform": "이 플랫폼",
         "instructions": {
             "bilibili": "<b>대상:</b> <b>bilibili.com</b>에 접속하여 해당 쿠키를 가져오세요.",
+            "xhh": "<b>권장:</b> 아래 QR 로그인을 사용하거나 <b>xiaoheihe.cn</b>에 로그인한 뒤 쿠키를 직접 입력하세요.",
             "youtube": "<b>1. Cookie 가져오기</b><br>YouTube에 로그인된 브라우저에서:<br>1. <b>youtube.com</b> 열기<br>2. F12 → Network 누르기<br>3. 페이지를 새로고침하고 <code>youtubei/v1/browse</code> 요청 선택<br>4. Request Headers에서 전체 Cookie 값 복사",
             "douyin": "<b>대상:</b> <b>douyin.com</b>에 접속하여 해당 쿠키를 가져오세요.",
             "kuaishou": "<b>대상:</b> <b>kuaishou.com</b>에 접속하여 해당 쿠키를 가져오세요.",
@@ -3823,6 +3825,18 @@
             "step4": "왼쪽 사이드바에서 <span class=\"highlight-text\">Cookies</span>를 찾아 도메인을 클릭한 후, 오른쪽에서 필요한 값을 복사합니다."
         },
         "fields": {
+            "user_heybox_id": {
+                "label": "user_heybox_id",
+                "desc": "Xiaoheihe 계정 ID (필수)"
+            },
+            "user_pkey": {
+                "label": "user_pkey",
+                "desc": "Xiaoheihe 로그인 자격 증명 (필수)"
+            },
+            "x_xhh_tokenid": {
+                "label": "x_xhh_tokenid",
+                "desc": "임시 브라우저 토큰 (선택, 실행 시 자동 생성)"
+            },
             "youtubeCookie": {
                 "label": "전체 Cookie",
                 "desc": "Request Headers의 전체 Cookie 값을 붙여넣으세요(SAPISID 필수)"
@@ -3937,6 +3951,7 @@
                 "waiting": "스캔 대기 중"
             },
             "successAlert": "QR 로그인 성공! 쿠키가 자동으로 입력되었습니다. 설정 저장을 클릭하세요",
+            "localSaveFailed": "QR 로그인에 성공했지만 로컬 자동 저장에 실패했습니다. 인증 정보가 입력되었으니 설정 저장을 클릭하여 수동으로 저장해 주세요.",
             "extractFailed": "QR 로그인은 성공했지만 필드를 자동으로 추출하지 못했습니다. 수동으로 확인해 주세요."
         }
     },

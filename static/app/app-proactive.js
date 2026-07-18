@@ -940,7 +940,10 @@
                 for (var _ref of Object.entries(result.data)) {
                     var platform = _ref[0];
                     var info = _ref[1];
-                    if (personalFeedPlatforms.has(platform) && info.has_cookies) {
+                    // A credential can belong to a non-feed platform (for example
+                    // NetEase Music or Xiaoheihe).  Presence alone must not enable
+                    // the personal-dynamics source.
+                    if (personalFeedPlatforms.has(platform) && info.has_cookies && info.supports_personal_dynamic === true) {
                         availablePlatforms.push(platform);
                     }
                 }
@@ -1070,7 +1073,7 @@
                 availableModes.push('window');
             }
 
-            // 新闻搭话：使用微博热议话题
+            // 新闻搭话：使用微博热议与小黑盒首页内容
             if (S.proactiveNewsChatEnabled && S.proactiveChatEnabled) {
                 availableModes.push('news');
             }
@@ -1080,7 +1083,7 @@
                 availableModes.push('video');
             }
 
-            // 个人动态搭话：使用B站和微博个人动态
+            // 个人动态搭话：聚合已登录社交平台的账号信息流。
             if (S.proactivePersonalChatEnabled && S.proactiveChatEnabled) {
                 // 检查是否有可用的 Cookie 凭证
                 var platforms = await getAvailablePersonalPlatforms();

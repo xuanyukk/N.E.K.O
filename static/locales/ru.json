@@ -2660,11 +2660,11 @@
             "proactiveVisionChat": "Визуальный чат",
             "proactiveVisionChatTooltip": "Требуется включить Проактивный чат и отключить Приватный режим",
             "proactiveNewsChat": "Новостной чат",
-            "proactiveNewsChatTooltip": "Использовать тренды для проактивного чата",
+            "proactiveNewsChatTooltip": "Использовать тренды и материалы главной страницы Xiaoheihe",
             "proactiveVideoChat": "Видео чат",
             "proactiveVideoChatTooltip": "Использовать видеоконтент для проактивного чата",
             "proactivePersonalChat": "Личные обновления",
-            "proactivePersonalChatTooltip": "Использовать личные обновления из подключённых платформ для проактивного чата",
+            "proactivePersonalChatTooltip": "Использовать личные обновления подключённых социальных платформ",
             "proactiveMusicChat": "Музыкальные рекомендации",
             "proactiveMusicChatTooltip": "Использовать рекомендуемую музыку для проактивного чата",
             "proactiveMemeChat": "Мемы",
@@ -3778,6 +3778,7 @@
         "title": "Центр управления учетными данными N.E.K.O",
         "header": "Центр получения учетных данных",
         "bilibili": "Bilibili",
+        "xhh": "Xiaoheihe",
         "youtube": "YouTube",
         "douyin": "Douyin",
         "kuaishou": "Kuaishou",
@@ -3806,6 +3807,7 @@
         "thisPlatform": "Эта платформа",
         "instructions": {
             "bilibili": "<b>Цель:</b> Перейдите на <b>bilibili.com</b>, чтобы получить эти файлы cookie.",
+            "xhh": "<b>Рекомендуется:</b> используйте вход по QR-коду ниже или войдите на <b>xiaoheihe.cn</b> и введите cookies вручную.",
             "youtube": "<b>1. Получите Cookie</b><br>В браузере, где выполнен вход в YouTube:<br>1. Откройте <b>youtube.com</b><br>2. Нажмите F12 → Network<br>3. Обновите страницу и выберите запрос <code>youtubei/v1/browse</code><br>4. Скопируйте полное значение Cookie из Request Headers",
             "douyin": "<b>Цель:</b> Перейдите на <b>douyin.com</b>, чтобы получить эти файлы cookie.",
             "kuaishou": "<b>Цель:</b> Перейдите на <b>kuaishou.com</b>, чтобы получить эти файлы cookie.",
@@ -3823,6 +3825,18 @@
             "step4": "Найдите <span class=\"highlight-text\">Cookies</span> на левой боковой панели, нажмите на домен и скопируйте нужные значения справа."
         },
         "fields": {
+            "user_heybox_id": {
+                "label": "user_heybox_id",
+                "desc": "ID учетной записи Xiaoheihe (обязательно)"
+            },
+            "user_pkey": {
+                "label": "user_pkey",
+                "desc": "Учетные данные для входа в Xiaoheihe (обязательно)"
+            },
+            "x_xhh_tokenid": {
+                "label": "x_xhh_tokenid",
+                "desc": "Временный токен браузера (необязательно; создается автоматически)"
+            },
             "youtubeCookie": {
                 "label": "Полный Cookie",
                 "desc": "Вставьте полное значение Cookie из Request Headers (должно содержать SAPISID)"
@@ -3937,6 +3951,7 @@
                 "waiting": "Ожидание сканирования"
             },
             "successAlert": "QR-вход успешен! Cookies автоматически заполнены, нажмите Сохранить конфигурацию",
+            "localSaveFailed": "QR-вход выполнен, но автоматически сохранить данные локально не удалось. Учётные данные заполнены; нажмите «Сохранить конфигурацию», чтобы сохранить их вручную.",
             "extractFailed": "QR-вход выполнен, но не удалось автоматически извлечь поля. Проверьте вручную."
         }
     },

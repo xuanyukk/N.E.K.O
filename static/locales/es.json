@@ -2660,11 +2660,11 @@
             "proactiveVisionChat": "Compartir pantalla",
             "proactiveVisionChatTooltip": "Requiere chat proactivo habilitado y Modo Privacidad deshabilitado",
             "proactiveNewsChat": "Sitio web de noticias",
-            "proactiveNewsChatTooltip": "Utilice temas de actualidad para un chat proactivo",
+            "proactiveNewsChatTooltip": "Usa temas de actualidad y contenido de inicio de Xiaoheihe",
             "proactiveVideoChat": "Sitio web de vídeos",
             "proactiveVideoChatTooltip": "Utilice contenido de vídeo para un chat proactivo",
             "proactivePersonalChat": "Actualizaciones personales",
-            "proactivePersonalChatTooltip": "Utilice actualizaciones personales de plataformas conectadas para un chat proactivo",
+            "proactivePersonalChatTooltip": "Usa actualizaciones personales de plataformas sociales conectadas",
             "proactiveMusicChat": "Recomendación musical",
             "proactiveMusicChatTooltip": "Utilice música recomendada para un chat proactivo",
             "proactiveMemeChat": "Compartir memes",
@@ -3778,6 +3778,7 @@
         "title": "Centro de control de credenciales N.E.K.O",
         "header": "Centro de adquisición de credenciales",
         "bilibili": "Bilibili",
+        "xhh": "Xiaoheihe",
         "youtube": "YouTube",
         "douyin": "Douyin",
         "kuaishou": "Kuaishou",
@@ -3806,6 +3807,7 @@
         "thisPlatform": "esta plataforma",
         "instructions": {
             "bilibili": "<b>Destino:</b> Vaya a <b>bilibili.com</b> para buscar estas cookies.",
+            "xhh": "<b>Recomendado:</b> use el inicio de sesión QR o entre en <b>xiaoheihe.cn</b> e introduzca las cookies manualmente.",
             "youtube": "<b>1. Obtén la Cookie</b><br>En un navegador con la sesión de YouTube iniciada:<br>1. Abre <b>youtube.com</b><br>2. Pulsa F12 → Network<br>3. Actualiza la página y selecciona una solicitud <code>youtubei/v1/browse</code><br>4. Copia el valor completo de Cookie desde Request Headers",
             "douyin": "<b>Destino:</b> Vaya a <b>douyin.com</b> para buscar estas cookies.",
             "kuaishou": "<b>Destino:</b> Vaya a <b>kuaishou.com</b> para buscar estas cookies.",
@@ -3823,6 +3825,18 @@
             "step4": "Busque <span class=\"highlight-text\">Cookies</span> en la barra lateral izquierda, haga clic en el dominio y copie los valores requeridos a la derecha."
         },
         "fields": {
+            "user_heybox_id": {
+                "label": "user_heybox_id",
+                "desc": "ID de cuenta de Xiaoheihe (obligatorio)"
+            },
+            "user_pkey": {
+                "label": "user_pkey",
+                "desc": "Credencial de inicio de sesión de Xiaoheihe (obligatoria)"
+            },
+            "x_xhh_tokenid": {
+                "label": "x_xhh_tokenid",
+                "desc": "Token temporal del navegador (opcional; se genera automáticamente)"
+            },
             "youtubeCookie": {
                 "label": "Cookie completa",
                 "desc": "Pega el valor completo de Cookie de Request Headers (debe incluir SAPISID)"
@@ -3937,6 +3951,7 @@
                 "waiting": "Esperando escaneo"
             },
             "successAlert": "¡Inicio de sesión QR exitoso! Las cookies se han completado automáticamente, haga clic en Guardar configuración",
+            "localSaveFailed": "El inicio de sesión QR se realizó correctamente, pero falló el guardado local automático. Las credenciales se han completado; haga clic en Guardar configuración para guardarlas manualmente.",
             "extractFailed": "El inicio de sesión QR se realizó correctamente pero no se pudieron extraer los campos automáticamente. Por favor verifíquelo manualmente."
         }
     },

@@ -1208,7 +1208,7 @@ async def proactive_chat(request: Request):
                 _log_video_content(lanlan_name, video_content)
                 links = _extract_links_from_raw(mode, video_content)
                 return (mode, {'formatted_content': formatted, 'raw_data': video_content, 'links': links})
-            
+
             elif mode == 'window':
                 window_context_content = await fetch_window_context_content(limit=5)
                 if not window_context_content['success']:

@@ -2660,11 +2660,11 @@
             "proactiveVisionChat": "屏幕分享",
             "proactiveVisionChatTooltip": "需开启主动搭话且关闭隐私模式",
             "proactiveNewsChat": "新闻网站",
-            "proactiveNewsChatTooltip": "使用热议话题进行搭话",
+            "proactiveNewsChatTooltip": "使用微博热议和小黑盒首页内容进行搭话",
             "proactiveVideoChat": "视频网站",
             "proactiveVideoChatTooltip": "使用视频内容进行搭话",
             "proactivePersonalChat": "个人动态",
-            "proactivePersonalChatTooltip": "使用已连接平台的个人动态进行搭话",
+            "proactivePersonalChatTooltip": "使用已连接社交平台的个人动态进行搭话",
             "proactiveMusicChat": "音乐推荐",
             "proactiveMusicChatTooltip": "使用推荐音乐进行搭话",
             "proactiveMemeChat": "表情包分享",
@@ -3778,6 +3778,7 @@
         "title": "N.E.K.O 凭证控制中心",
         "header": "凭证获取中心",
         "bilibili": "Bilibili",
+        "xhh": "小黑盒",
         "youtube": "YouTube",
         "douyin": "抖音",
         "kuaishou": "快手",
@@ -3806,6 +3807,7 @@
         "thisPlatform": "此平台",
         "instructions": {
             "bilibili": "<b>目标：</b>请前往 <b>bilibili.com</b>获取这些 Cookies。",
+            "xhh": "<b>推荐：</b>点击下方扫码登录；也可前往 <b>xiaoheihe.cn</b> 登录后手动填写 Cookies。",
             "youtube": "<b>1. 获取 Cookie</b><br>在已登录 YouTube 的浏览器中：<br>1. 打开 <b>youtube.com</b><br>2. 按 F12 → Network<br>3. 刷新页面，选择一个 <code>youtubei/v1/browse</code> 请求<br>4. 在 Request Headers 中复制完整的 Cookie 值",
             "douyin": "<b>目标：</b> 请前往 <b>douyin.com</b> 获取这些 Cookies。",
             "kuaishou": "<b>目标：</b> 请前往 <b>kuaishou.com</b> 获取这些 Cookies。",
@@ -3823,6 +3825,18 @@
             "step4": "在左侧找到 <span class=\"highlight-text\">Cookies</span>，点击域名后在右侧复制对应的值。"
         },
         "fields": {
+            "user_heybox_id": {
+                "label": "user_heybox_id",
+                "desc": "小黑盒账号 ID（必填）"
+            },
+            "user_pkey": {
+                "label": "user_pkey",
+                "desc": "小黑盒登录凭证（必填）"
+            },
+            "x_xhh_tokenid": {
+                "label": "x_xhh_tokenid",
+                "desc": "临时浏览器令牌（选填，运行时可自动生成）"
+            },
             "youtubeCookie": {
                 "label": "完整 Cookie",
                 "desc": "粘贴 Request Headers 中完整的 Cookie 值（必须包含 SAPISID）"
@@ -3937,6 +3951,7 @@
                 "waiting": "等待扫码"
             },
             "successAlert": "扫码登录成功！Cookie 已自动填入，请点击保存配置",
+            "localSaveFailed": "扫码登录成功，但自动保存失败。凭证已填入，请手动点击保存配置。",
             "extractFailed": "扫码成功但未能自动提取到字段，请手动检查。"
         }
     },
